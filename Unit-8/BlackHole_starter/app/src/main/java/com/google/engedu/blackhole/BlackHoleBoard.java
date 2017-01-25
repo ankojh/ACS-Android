@@ -34,8 +34,9 @@ public class BlackHoleBoard {
     // Relative position of the neighbors of each tile. This is a little tricky because of the
     // triangular shape of the board.
     public final static int[][] NEIGHBORS = {{-1, -1}, {0, -1}, {-1, 0}, {1, 0}, {0, 1}, {1, 1}};
+
     // When we get to the Monte Carlo method, this will be the number of games to simulate.
-    private static final int NUM_GAMES_TO_SIMULATE = 2000;
+    private static final int NUM_GAMES_TO_SIMULATE = 2000; // performance improvement can be seen with just =5, 2000
     // The tiles for this board.
     public BlackHoleTile[] tiles; // for unit test
     // The number of the current player. 0 for user, 1 for computer.
@@ -134,70 +135,83 @@ public class BlackHoleBoard {
         // it with an algorithm that uses the Monte Carlo method to pick a good move.
         HashMap<Integer,ArrayList<Integer>> possibleMoves=new HashMap<>();
         ArrayList<Integer> nullTiles = new ArrayList<>();
+        for(int i=0;i<BOARD_SIZE;i++)
+        {
+            ArrayList<Integer> gList = new ArrayList<>();
+            possibleMoves.put(i,gList);
+        }
         for(int k=0;k<NUM_GAMES_TO_SIMULATE;k++) {
             BlackHoleBoard cBoard = new BlackHoleBoard();
             cBoard.copyBoardState(this);
             for (int i = 0; i < BOARD_SIZE; i++) {
                 if (cBoard.tiles[i] == null) {
                     nullTiles.add(i);
+                    //ArrayList<Integer> nullList = new ArrayList<>();
+                    //possibleMoves.put(i,nullList);
                 }
             }
-            //Log.d("nullTiles", "" + nullTiles.toString());
-            int fmove=-1;
-            int originalNullTilesSize = nullTiles.size();
-            for (int i = 0; i < originalNullTilesSize - 1; i++) {
-                int randIndex = random.nextInt(nullTiles.size());
-                int randTile = nullTiles.get(randIndex);
+            int nullSize = nullTiles.size(),fTile=-1;
+            int cPlayer = 1;
+            int uMoves = nextMove[0];
+            int cMoves = nextMove[1];
+            for(int i=0;i<nullSize-1;i++)
+            {
+                int randInt = random.nextInt(nullTiles.size());
+                int randTile = nullTiles.get(randInt);
+                //cBoard.tiles[randInt]=new BlackHoleTile(cPlayer,nMoves[cPlayer]);
+                cBoard.tiles[randTile] = new BlackHoleTile(cPlayer,cPlayer==0?uMoves:cMoves);
+                if(cPlayer==0)
+                    uMoves++;
+                else
+                    cMoves++;
+                cPlayer = cPlayer==0?1:0;
+                nullTiles.remove(randInt);
                 if(i==0)
+                    fTile = randTile;
+            }
+            int cScore = cBoard.getScore();
+            //Log.d("cScore",""+cScore);
+            int g=0;
+            for(int pp=0;pp<BOARD_SIZE;pp++)
+            {
+                if(cBoard.tiles[pp]==null)
                 {
-                    fmove=randTile;
+                   // Log.d("G"+nullSize,""+pp);
                 }
-              //  Log.d("RandTile", "" + randTile);
-                nullTiles.remove(randIndex);
-                //Log.d("nullTiles", "" + nullTiles.toString());
-                cBoard.tiles[randIndex] = new BlackHoleTile(cBoard.currentPlayer, cBoard.nextMove[cBoard.currentPlayer]);
-                cBoard.nextMove[cBoard.currentPlayer]++;
-                cBoard.currentPlayer = cBoard.currentPlayer == 0 ? 1 : 0;
+                else
+                {
+                   // Log.d("pp"+pp,""+cBoard.tiles[pp].player+" "+cBoard.tiles[pp].value);
+                }
             }
-            //Log.d("GetScore", "" + cBoard.getScore());
-            ArrayList<Integer> tList;
-            if(!possibleMoves.containsKey(fmove))
-            {
-                tList = new ArrayList<>();
-            }
-            else
-            {
-               tList=possibleMoves.get(fmove);
-            }
-            tList.add(cBoard.getScore());
-            possibleMoves.put(fmove,tList);
-        }
-        //Log.d("PM",""+possibleMoves.keySet());
-        int oavg=Integer.MAX_VALUE,oindex=Integer.MAX_VALUE;
+           // Log.d("FM"+fTile,""+cScore);
+            ArrayList<Integer> tList = possibleMoves.get(fTile);
+            tList.add(cScore);
+            possibleMoves.put(fTile,tList);
+         }
+       // Log.d("possible Move",""+possibleMoves);
+        int mAvg = Integer.MAX_VALUE,mIndex=-1;
         for(int i=0;i<BOARD_SIZE;i++)
         {
-            int tsum=-1,tavg=-1;
-            if(possibleMoves.containsKey(i))
+            ArrayList<Integer> tempList = possibleMoves.get(i);
+            if(this.tiles[i]==null && !tempList.isEmpty())
             {
-                ArrayList<Integer> tList = possibleMoves.get(i);
-                for(int j=0;j<tList.size();j++)
+                //Log.d("AL",""+tempList.toString());
+                int tSum=0,tAvg;
+                for(int j=0;j<tempList.size();j++)
                 {
-                    tsum+=tList.get(j);
+                    tSum+=tempList.get(j);
+                  //  Log.d("Ad","ing");
                 }
-                tavg=tsum/tList.size();
-            }
-            else
-            {
-                continue;
-            }
-            if(tavg<oavg)
-            {
-                oavg=tavg;
-                oindex=i;
+                tAvg = tSum/tempList.size();
+                if(tAvg<mAvg)
+                {
+                    mAvg=tAvg;
+                    mIndex=i;
+                }
             }
         }
-
-        return oindex;
+       // Log.d("here","here5");
+        return mIndex;
     }
 
     // Makes the next move on the board at position i. Automatically updates the current player.
