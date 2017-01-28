@@ -17,6 +17,7 @@ package com.google.engedu.palindromes;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Range;
 import android.view.View;
 import android.widget.EditText;
@@ -67,6 +68,36 @@ public class MainActivity extends AppCompatActivity {
     //Greedy
     private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
         PalindromeGroup bestGroup = null;
+        int tempEnd = start + 1;
+        if(tempEnd==end)
+        {
+            bestGroup=new PalindromeGroup(text,start,end);
+            Log.d("last one",""+toString(text,start,end));
+            return bestGroup;
+        }
+        while(tempEnd<=end)
+        {
+            if(!isPalindrome(text,start,tempEnd))
+            {
+                Log.d("not palidrome",""+toString(text,start,tempEnd));
+                bestGroup = new PalindromeGroup(text,start,tempEnd-1);
+                Log.d("BestGroup",""+toString(text,start,tempEnd-1));
+                break;
+            }
+            tempEnd++;
+        }
+        Log.d("Left Group"+(tempEnd-1)+" "+end,""+toString(text,tempEnd-1,end));
+        bestGroup.append(breakIntoPalindromes(text,tempEnd-1,end));
         return bestGroup;
     }
+
+    //debug helper function
+    public String toString(char[] text, int start, int end)
+    {
+        String s = "";
+        for(int i=start;i<end;i++)
+            s+=text[i];
+        return s;
+    }
+
 }
