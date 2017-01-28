@@ -28,7 +28,7 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity {
 
     private HashMap<Range, PalindromeGroup> findings = new HashMap<>();
-
+    public int minNumberOfPalindromes = Integer.MAX_VALUE;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-    //Greedy
-    private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
+    //TODO Greedy
+   /* private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
         PalindromeGroup bestGroup = null;
         int tempEnd = start + 1;
         if(tempEnd==end)
@@ -88,6 +88,33 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.d("Left Group"+(tempEnd-1)+" "+end,""+toString(text,tempEnd-1,end));
         bestGroup.append(breakIntoPalindromes(text,tempEnd-1,end));
+        return bestGroup;
+    }
+*/
+
+    //TODO RECURSIVE
+    private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
+        PalindromeGroup bestGroup = null;
+        int minNumOfPalindromes = Integer.MAX_VALUE;
+        int tempEnd = start + 1;
+        while (tempEnd<=end)
+        {
+            if(isPalindrome(text,start,tempEnd))
+            {
+                PalindromeGroup newGroup;
+                newGroup = new PalindromeGroup(text,start,tempEnd);
+                newGroup.append(breakIntoPalindromes(text,tempEnd,end));
+                Log.d("string",""+newGroup.strings.toString());
+                if(newGroup.length()<minNumOfPalindromes)
+                {
+                    bestGroup = newGroup;
+                    minNumOfPalindromes = bestGroup.length();
+                    Log.d("Size"+bestGroup.length(),""+minNumOfPalindromes);
+                }
+            }
+            tempEnd++;
+        }
+
         return bestGroup;
     }
 
