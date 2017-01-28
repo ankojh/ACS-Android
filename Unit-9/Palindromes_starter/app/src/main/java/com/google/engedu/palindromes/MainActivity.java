@@ -18,6 +18,7 @@ package com.google.engedu.palindromes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.util.Range;
 import android.view.View;
 import android.widget.EditText;
@@ -27,7 +28,7 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
 
-    private HashMap<Range, PalindromeGroup> findings = new HashMap<>();
+    private HashMap<Pair<Integer,Integer>, PalindromeGroup> findings = new HashMap<>();
     public int minNumberOfPalindromes = Integer.MAX_VALUE;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 */
 
     //TODO RECURSIVE
-    private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
+   /* private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
         PalindromeGroup bestGroup = null;
         int minNumOfPalindromes = Integer.MAX_VALUE;
         int tempEnd = start + 1;
@@ -115,6 +116,38 @@ public class MainActivity extends AppCompatActivity {
             tempEnd++;
         }
 
+        return bestGroup;
+    }
+*/
+    //TODO DYNAMIC PROGRAMMING
+    private PalindromeGroup breakIntoPalindromes(char[] text, int start, int end) {
+        PalindromeGroup bestGroup = null;
+        int minNumOfPalindromes = Integer.MAX_VALUE;
+        int tempEnd = start + 1;
+        while (tempEnd<=end)
+        {
+            Pair<Integer,Integer> newPair = new Pair<>(start,tempEnd);
+            PalindromeGroup newGroup;
+            if(isPalindrome(text,start,tempEnd))
+            {
+                if(findings.containsKey(newPair))
+                {
+                    newGroup = findings.get(newPair);
+                }
+                else
+                {
+                    newGroup = new PalindromeGroup(text,start,tempEnd);
+                    newGroup.append(breakIntoPalindromes(text,tempEnd,end));
+                    findings.put(newPair,newGroup);
+                }
+                if(newGroup.length()<minNumOfPalindromes)
+                {
+                    bestGroup = newGroup;
+                    minNumOfPalindromes = bestGroup.length();
+                }
+            }
+            tempEnd++;
+        }
         return bestGroup;
     }
 
