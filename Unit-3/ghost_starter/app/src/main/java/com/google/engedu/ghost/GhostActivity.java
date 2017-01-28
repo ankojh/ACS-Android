@@ -19,6 +19,7 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -83,7 +84,7 @@ public class GhostActivity extends AppCompatActivity {
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onStart(null);
+                onStart(null);// NSFW
             }
         });
     }
@@ -134,20 +135,22 @@ public class GhostActivity extends AppCompatActivity {
 
     private void computerTurn() {
         TextView label = (TextView) findViewById(R.id.gameStatus);
-        TextView ghostTextView= (TextView) findViewById(R.id.ghostText);
+        TextView ghostTextView = (TextView) findViewById(R.id.ghostText);
         // Do computer turn stuff then make it the user's turn again
         String prefix = ghostTextView.getText().toString();
-        String wordSelected = dictionary.getAnyWordStartingWith(prefix);
-        if((dictionary.isWord(prefix)&prefix.length()>=4) || wordSelected==null)
-        {
+        //String wordSelected = dictionary.getAnyWordStartingWith(prefix);
+        String wordSelected = dictionary.getGoodWordStartingWith(prefix);
+        Log.d("Word Selected", "" + wordSelected);
+        if ((dictionary.isWord(prefix) & prefix.length() >= 4) || (wordSelected == null && prefix != "")) {
             label.setText("Computer Wins!");
-        }
-        int prefixSize =  prefix.length();
-        ghostTextView.setText(prefix+wordSelected.charAt(prefixSize));
-        userTurn = true;
-        label.setText(USER_TURN);
-    }
 
+        } else {
+            int prefixSize = prefix.length();
+            ghostTextView.setText(prefix + wordSelected.charAt(prefixSize));
+            userTurn = true;
+            label.setText(USER_TURN);
+        }
+    }
 
 
     /**
@@ -180,5 +183,30 @@ public class GhostActivity extends AppCompatActivity {
         }
         else
             return super.onKeyUp(keyCode, event);
+    }
+
+    //Game Save
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        TextView ghostTextView = (TextView) findViewById(R.id.ghostText);
+        TextView gameStatus = (TextView) findViewById(R.id.gameStatus);
+        outState.putString("ghost_text",ghostTextView.getText().toString());
+        outState.putString("game_status",gameStatus.getText().toString());
+        outState.putBoolean("userTurn",userTurn);
+    }
+
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        TextView ghostTextView = (TextView) findViewById(R.id.ghostText);
+        TextView gameStatus = (TextView) findViewById(R.id.gameStatus);
+        userTurn = savedInstanceState.getBoolean("userTurn");
+        ghostTextView.setText(savedInstanceState.getString("ghost_text"));
+        gameStatus.setText(savedInstanceState.getString("game_status"));
     }
 }
