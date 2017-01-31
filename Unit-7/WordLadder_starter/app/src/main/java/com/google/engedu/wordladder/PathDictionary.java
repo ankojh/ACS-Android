@@ -62,6 +62,7 @@ public class PathDictionary {
             //Log.d("word "+word,""+word2Node.get(word).neighbours);
 
         }
+        Log.d("Added","all words");
     }
 
     public boolean isWord(String word) {
@@ -91,28 +92,41 @@ public class PathDictionary {
     }
 
     public String[] findPath(String start, String end) {
-        //Log.d("called","fp");
+        Log.d("called","fp");
         ArrayDeque<ArrayList<String>> deque = new ArrayDeque<>();
         HashSet<String> visited = new HashSet<>();
         ArrayList<String> pathList = new ArrayList<>();
         pathList.add(start);
         deque.addLast(pathList);
-        for(int i=0;i<4;i++) //Depth - 4
+        while(!deque.isEmpty())
         {
-            ArrayList<String> pathFinder = deque.pollLast();
+            ArrayList<String> pathFinder = deque.pollFirst();
+            if(pathFinder.size()>8) //avoiding going very deep
+            {
+                continue;
+            }
+            Log.d("Bug","Hello");
+            Log.d("PF",""+pathFinder.toString());
             if(pathFinder == null)
             {
                 Log.d("Continue","null");
-                continue;
+                //continue;
             }
-            ArrayList<String> neighbours = word2Node.get(start).neighbours;
+            String tempEnd = pathFinder.get(pathFinder.size()-1);
+            ArrayList<String> neighbours = word2Node.get(tempEnd).neighbours;
             Log.d("Neighbour"," "+neighbours.size());
-            for(int j=0;j<neighbours.size();i++)
+            Log.d("NS",""+neighbours.toString());
+            for(int j=0;j<neighbours.size();j++)
             {
 
                 String newWord = neighbours.get(j);
-                ArrayList<String> tempPath = pathFinder;
-                if(newWord==end)
+                ArrayList<String> tempPath = new ArrayList<>();
+                for(int k=0;k<pathFinder.size();k++)
+                {
+                    tempPath.add(pathFinder.get(k));
+                }
+                Log.d("newWord",""+newWord);
+                if(newWord.equals(end))
                 {
                     tempPath.add(end);
                     Log.d("Path",""+tempPath.toString());
@@ -124,8 +138,11 @@ public class PathDictionary {
                 }
                 tempPath.add(newWord);
                 deque.addLast(tempPath);
+                Log.d("newPath",""+tempPath.toString());
+                //Log.d("pathFindeer",""+pathFinder.toString());
             }
-        }
+        //Log.d("PF",""+pathFinder.toString());
+            }
         return null;
     }
 }
