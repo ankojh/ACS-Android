@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 
 
@@ -92,19 +93,39 @@ public class ContinentMap extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         int screenWidth = getWidth();
         int maxd = 127/7;
         int cellWidth = screenWidth/boardSize;
         Log.d("SW"+screenWidth,"cw"+cellWidth);
-
+        ContinentMap newMap = new ContinentMap(getContext());
         int k=0;
         for(int i=0;i<boardSize;i++)
         {
             for(int j=0;j<boardSize;j++)
             {
                 Paint paint = new Paint();
-                paint.setColor(Color.rgb(255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k]));
+                //paint.setColor(Color.rgb(255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k]));
+                //newMap.getMap(i,j).flowsSE=true;
+                int r=255-maxd*DEFAULT_MAP[k],g=255-maxd*DEFAULT_MAP[k],b=255-maxd*DEFAULT_MAP[k];
+                if(newMap.getMap(i,j).flowsNW)
+                {
+                    g= 255-DEFAULT_MAP[k]*maxd;
+                    b= 0;
+                    r= 0;
+                }
+                if(newMap.getMap(i,j).flowsSE)
+                {
+                    r=0;
+                    g=0;
+                    b= 255-DEFAULT_MAP[k]*maxd;
+                }
+                if(newMap.getMap(i,j).flowsNW && newMap.getMap(i,j).flowsSE)
+                {
+                    r=255-DEFAULT_MAP[k]*maxd;
+                    g=0;
+                    b=0;
+                }
+                paint.setColor(Color.rgb(r,g,b));
                 canvas.drawRect(0+(j*cellWidth),0+(i*cellWidth),cellWidth+(j*cellWidth),cellWidth+(i*cellWidth),paint);
                 paint.setColor(Color.BLACK);
                 paint.setTextSize((int)(cellWidth-(cellWidth/2.5))); //hyperparameter 2.5 (delta)
