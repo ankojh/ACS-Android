@@ -26,6 +26,7 @@ import android.widget.TextView;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Currency;
 import java.util.Random;
 
 
@@ -34,7 +35,7 @@ public class ContinentMap extends View {
     private Cell[] map;
     private int boardSize;
     private Random random = new Random();
-    private int maxHeight = 0, minHeight = 0;
+    private int maxHeight =0, minHeight = 0;
 
     private Integer[] DEFAULT_MAP = {
             1, 2, 3, 4, 5,
@@ -75,7 +76,7 @@ public class ContinentMap extends View {
 
     private Cell getMap(int x, int y) {
         if (x >=0 && x < boardSize && y >= 0 && y < boardSize)
-            return map[x + boardSize * y];
+            return map[y + boardSize * x]; //This was messed up! wasted a day.
         else
             return null;
     }
@@ -94,10 +95,22 @@ public class ContinentMap extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int screenWidth = getWidth();
-        int maxd = 127/7;
+        maxHeight = -1;
+        minHeight = Integer.MAX_VALUE;
+        for(int i=0;i<boardSize*boardSize;i++)
+        {
+            if(DEFAULT_MAP[i]>maxHeight)
+            {
+                maxHeight=DEFAULT_MAP[i];
+            }
+            if(DEFAULT_MAP[i]<minHeight)
+            {
+                minHeight=DEFAULT_MAP[i];
+            }
+        }
+        int maxd = 127/(maxHeight+(-1*minHeight));
         int cellWidth = screenWidth/boardSize;
         Log.d("SW"+screenWidth,"cw"+cellWidth);
-        ContinentMap newMap = new ContinentMap(getContext());
         int k=0;
         for(int i=0;i<boardSize;i++)
         {
@@ -107,19 +120,19 @@ public class ContinentMap extends View {
                 //paint.setColor(Color.rgb(255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k],255-maxd*DEFAULT_MAP[k]));
                 //newMap.getMap(i,j).flowsSE=true;
                 int r=255-maxd*DEFAULT_MAP[k],g=255-maxd*DEFAULT_MAP[k],b=255-maxd*DEFAULT_MAP[k];
-                if(newMap.getMap(i,j).flowsNW)
+                if(getMap(i,j).flowsNW)
                 {
                     g= 255-DEFAULT_MAP[k]*maxd;
                     b= 0;
                     r= 0;
                 }
-                if(newMap.getMap(i,j).flowsSE)
+                if(getMap(i,j).flowsSE)
                 {
                     r=0;
                     g=0;
                     b= 255-DEFAULT_MAP[k]*maxd;
                 }
-                if(newMap.getMap(i,j).flowsNW && newMap.getMap(i,j).flowsSE)
+                if(getMap(i,j).flowsNW && getMap(i,j).flowsSE)
                 {
                     r=255-DEFAULT_MAP[k]*maxd;
                     g=0;
@@ -129,7 +142,10 @@ public class ContinentMap extends View {
                 canvas.drawRect(0+(j*cellWidth),0+(i*cellWidth),cellWidth+(j*cellWidth),cellWidth+(i*cellWidth),paint);
                 paint.setColor(Color.BLACK);
                 paint.setTextSize((int)(cellWidth-(cellWidth/2.5))); //hyperparameter 2.5 (delta)
+                //paint.setTextAlign(Paint.Align.CENTER); // Hyper Parameters are working fine, don't need this.
                 canvas.drawText(DEFAULT_MAP[k].toString(),(cellWidth*j)+(cellWidth/3),(cellWidth*(i+1))-(cellWidth/4),paint);//3 & 4hyperparameter (delta)
+                //canvas.drawText(DEFAULT_MAP[k].toString(),cellWidth*j,cellWidth*(i+1),paint);
+                ;
                 k++;
             }
         }
@@ -142,6 +158,7 @@ public class ContinentMap extends View {
         for (int x = 0; x < boardSize; x++) {
             for (int y = 0; y < boardSize; y++) {
                 Cell cell = getMap(x, y);
+               /// Log.d("Cell"+x+" "+y,"ch"+cell.height);
                 if ((x == 0 || y == 0 || x == boardSize - 1 || y == boardSize - 1)) {
                     buildUpContinentalDivideRecursively(
                             x, y, x == 0 || y == 0, x == boardSize - 1 || y == boardSize - 1, -1);
@@ -159,11 +176,58 @@ public class ContinentMap extends View {
 
     private void buildUpContinentalDivideRecursively(
             int x, int y, boolean flowsNW, boolean flowsSE, int previousHeight) {
-        /**
-         **
-         **  YOUR CODE GOES HERE
-         **
-         **/
+        //here
+        Cell cell = getMap(x,y);
+        if(cell == null)
+        {
+            return;//off board
+        }
+        if(cell.processing)
+        {
+            return; //cell has been processed
+        }
+        if(cell.height<previousHeight)
+        {
+            return; //avoiding going down
+        }
+        if(flowsNW)
+        {
+            Log.d(x+":"+y,""+cell.height+" "+previousHeight);
+            cell.flowsNW = true;
+        }
+        if(flowsSE)
+        {
+            cell.flowsSE = true;
+        }
+        if(cell.flowsNW && cell.flowsSE)
+        {
+            cell.processing = true;
+        }
+        buildUpContinentalDivideRecursively(x-1,y,cell.flowsNW,cell.flowsSE,cell.height);
+        buildUpContinentalDivideRecursively(x,y-1,cell.flowsNW,cell.flowsSE,cell.height);
+        buildUpContinentalDivideRecursively(x+1,y,cell.flowsNW,cell.flowsSE,cell.height);
+        buildUpContinentalDivideRecursively(x,y+1,cell.flowsNW,cell.flowsSE,cell.height);
+
+  /*      Cell cell = getMap(4,0);
+        Log.d("a",""+cell.height);
+        cell.flowsNW=true;
+        cell.processing=true;
+        cell = getMap(4,1);
+        Log.d("a",""+cell.height);
+        cell.flowsNW=true;
+        cell.processing=true;
+        cell = getMap(4,2);
+        Log.d("a",""+cell.height);
+        cell.flowsNW=true;
+        cell.processing=true;
+        cell = getMap(4,3);
+        Log.d("a",""+cell.height);
+        cell.flowsNW=true;
+        cell.processing=true;
+        cell = getMap(4,4);
+        Log.d("a",""+cell.height);
+        cell.flowsNW=true;
+        cell.processing=true;*/
     }
 
     public void buildDownContinentalDivide(boolean oneStep) {
@@ -200,6 +264,7 @@ public class ContinentMap extends View {
          **  YOUR CODE GOES HERE
          **
          **/
+
         return workingCell;
     }
 
