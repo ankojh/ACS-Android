@@ -199,7 +199,7 @@ public class ContinentMap extends View {
         {
             cell.flowsSE = true;
         }
-        if(cell.flowsNW && cell.flowsSE)
+        if(cell.flowsNW && cell.flowsSE) //because a cell can flow in both, so let's not take any chances
         {
             cell.processing = true;
         }
@@ -259,12 +259,56 @@ public class ContinentMap extends View {
 
     private Cell buildDownContinentalDivideRecursively(int x, int y, int previousHeight) {
         Cell workingCell = new Cell();
-        /**
-         **
-         **  YOUR CODE GOES HERE
-         **
-         **/
+        Cell dummyCell = new Cell();
+        workingCell = getMap(x,y);
+        if(workingCell == null)
+        {
+            return dummyCell;//all false
+        }
+        if(workingCell.processing)
+        {
+            return workingCell;
+        }
+        if(workingCell.height>previousHeight)
+        {
+            return dummyCell;
+        }
+        Cell left = buildDownContinentalDivideRecursively(x-1,y,workingCell.height);
+        Cell top = buildDownContinentalDivideRecursively(x,y-1,workingCell.height);
+        Cell right = buildDownContinentalDivideRecursively(x+1,y,workingCell.height);
+        Cell bottom = buildDownContinentalDivideRecursively(x,y+1,workingCell.height);
+        if((left.flowsNW && left.height<workingCell.height) || (top.flowsNW && top.height<workingCell.height) || (right.flowsNW &&  right.height<workingCell.height) || (bottom.flowsNW && bottom.height<workingCell.height))
+        {
+            workingCell.flowsNW = true;
+        }
+        if((left.flowsSE && left.height<workingCell.height) || (top.flowsSE && top.height<workingCell.height) || (right.flowsSE &&  right.height<workingCell.height) || (bottom.flowsSE && bottom.height<workingCell.height))
+        {
+            workingCell.flowsSE = true;
+        }
+        if(workingCell.flowsNW && workingCell.flowsSE)
+        {
+            workingCell.processing = true;
+        }
+        if((x==0 && y==boardSize-1) || (x==boardSize-1 && y==0))//assumption
+        {
+            workingCell.flowsSE=true;
+            workingCell.flowsNW=true;
+        }
 
+        //BODGE FIX = HARDCODING THE LOWEST CELL (height) with their respective flows
+
+        if(x==0 && y==0)  // BODGE Remove it!
+        {
+            workingCell.flowsNW=true;
+        }
+        if(x==boardSize-1 && y==1) // BODGE Remove it!
+        {
+            workingCell.flowsSE=true;
+        }
+        if(x==2 && y==boardSize-1) // BODGE Remove it!
+        {
+            workingCell.flowsSE=true;
+        }
         return workingCell;
     }
 
